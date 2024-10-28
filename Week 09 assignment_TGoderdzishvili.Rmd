@@ -1,0 +1,154 @@
+---
+title: "Week 09 assignment_Teona"
+output: html_document
+date: "2024-10-27"
+---
+
+```{r}
+install.packages("pdftools")
+```
+```{r}
+install.packages("rio")
+install.packages("tidytext")
+```
+
+```{r}
+install.packages("tidyverse")
+```
+
+```{r}
+library(pdftools)
+library(tidyverse)
+library(rio)
+library(tidytext)
+```
+
+#1.Download this PDF
+
+#2.Create a new R Markdown document
+
+#3.Extract the text using the pdftools package
+```{r}
+
+url <- "https://github.com/wellsdata/CompText_Jour/blob/main/exercises/assets/pdfs/AI_yao_taufiq.PDF?raw=true"
+destfile <- "AI_yao_tafiq.pdf"
+
+download.file(url, destfile, mode = "wb")
+
+```
+
+#4.Split the text so you have one article per file
+```{r}
+
+
+AI_yao_taufiq_file_path <- "..D:/A DATA CLASS/AI_yao_taufiq.txt"
+
+AI_yao_taufiq_text <- readLines(AI_yao_taufiq_file_path)
+
+
+AI_yao_taufiq_combined <- paste(AI_yao_taufiq_file_path, collapse = "\n")
+
+#Split the text by the "End of Document" phrase
+AI_yao_taufiq_split <- strsplit(AI_yao_taufiq_combined, "End of Document")[[1]]
+
+#Write each section to a new file
+AI_yao_taufiq_output <- "../A DATA CLASS/assets/extracted_text/"
+for (i in seq_along(AI_yao_taufiq_split)) {
+  AI_yao_taufiq_output <- file.path(AI_yao_taufiq_output, paste0("AI_yao_taufiq_output_extracted_", i, ".txt"))
+  writeLines(AI_yao_taufiq_split[[i]], output_file)
+}
+
+cat("Files created:", length(documents), "\n")
+```
+#5.Construct a dataframe with an index of the articles a unique file name for each article
+
+```{r}
+url <- "https://github.com/wellsdata/CompText_Jour/blob/main/exercises/assets/pdfs/AI_yao_taufiq.PDF?raw=true"
+destfile <- "AI_yao_taufiq.pdf"
+
+
+text <- pdf_text(destfile)
+
+#Split the text into articles using "End of Document" 
+articles <- strsplit(text_combined, "End of Document")[[1]]
+
+
+AI_yao_taufiq_output <- "extracted_text"
+if (!dir.exists(output_dir)) {
+  dir.create(output_dir)
+}
+
+#dataframe
+articles_df <- data.frame(
+  index = seq_along(articles),
+  filename = paste0("article_", seq_along(articles), ".txt"),
+  stringsAsFactors = FALSE
+)
+
+#articles to files
+for (i in seq_along(articles)) {
+  writeLines(
+    articles[i],
+    file.path(output_dir, articles_df$filename[i])
+  )
+}
+```
+
+#6. Pull the text articles together into a single dataframe, one row per sentence
+```{r}
+url <- "https://github.com/wellsdata/CompText_Jour/blob/main/exercises/assets/pdfs/AI_yao_taufiq.PDF?raw=true"
+destfile <- "AI_yao_taufiq.pdf"
+
+text_content <- pdf_text(destfile)
+
+
+#Split the text by the "End of Document" phrase
+articles <- strsplit(text_combined, "End of Document")[[1]]
+
+#Creating a dataframe with article index and full text
+articles_df <- data.frame(
+  article_id = seq_along(articles),
+  text = articles,
+  stringsAsFactors = FALSE
+)
+
+#Using tidytext to split into sentences
+sentences_df <- articles_df %>%
+  unnest_tokens(
+    output = sentence,
+    input = text,
+    token = "sentences"
+  ) %>%
+  group_by(article_id) %>%
+  mutate(
+    sentence_id = row_number(),
+    sentence = str_trim(sentence)
+  ) %>%
+  
+  
+  
+#Remove empty sentences
+  filter(sentence != "") %>%
+#Create a unique identifier for each sentence
+  mutate(
+    sentence_global_id = row_number()
+  ) %>%
+  ungroup()
+
+
+#Display structure of the dataframe
+str(sentences_df)
+
+
+#Format date, clean headline
+final_data <- final_data |> 
+  mutate(date = as.Date(date2,format = "%b %d, %Y")) |> 
+  mutate(title =str_remove(title, "^\\d+\\. ")) |> 
+  subset(select = -(date2)) |> 
+  mutate(index = row_number()) |> 
+  select(index, date, title, publication)
+
+
+```
+
+
